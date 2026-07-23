@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="tr" id="html-root" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vibe & Brew - Colorful Moments, Delicious Meets</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            transition: background-color 0.4s ease, color 0.4s ease;
+        }
+        @keyframes gradient-xy {
+            0%, 100% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+        }
+        .animate-gradient {
+            background-size: 200% 200%;
+            animation: gradient-xy 8s ease infinite;
+        }
+        @keyframes bar-pulse {
+            0%, 100% { height: 4px; }
+            50% { height: 16px; }
+        }
+        .equalizer-bar {
+            animation: bar-pulse 1.2s ease-in-out infinite;
+        }
+        /* Toast notification animation */
+        @keyframes toast-slide-in {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .toast-animate {
+            animation: toast-slide-in 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-white dark:bg-slate-950 dark:text-white transition-colors duration-300 overflow-x-hidden pb-16">
+
+    <!-- 🔔 CANLI TOAST BİLDİRİM KONTEYNERİ -->
+    <div id="toast-container" class="fixed top-5 right-5 z-50 space-y-3 pointer-events-none max-w-xs w-full"></div>
+
+    {% if messages %}
+    <div class="fixed top-5 right-5 z-40 space-y-2">
+        {% for message in messages %}
+        <div class="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-bounce">
+            <i class="fa-solid fa-sparkles text-yellow-300 text-xl"></i>
+            <span class="font-medium">{{ message }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- HEADER / HERO -->
+    <header class="relative min-h-[90vh] flex items-center justify-center text-center px-4 overflow-hidden bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-950 animate-gradient">
+        
+        <!-- Üst Butonlar -->
+        <div class="absolute top-6 right-6 z-30 flex flex-wrap items-center justify-end gap-3">
+            <button onclick="toggleLoyaltyModal()" class="px-4 py-2 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 font-bold text-xs text-white shadow-lg flex items-center gap-2 transition active:scale-95">
+                <i class="fa-solid fa-stamp text-amber-300"></i> Sadakat Kartı (<span id="stamp-count-badge">0</span>/6) ☕
+            </button>
+            <button onclick="pickSurpriseItem()" class="px-4 py-2 rounded-full bg-gradient-to-r from-amber-500 to-rose-500 hover:opacity-90 font-bold text-xs text-white shadow-lg flex items-center gap-2 transition active:scale-95">
+                <i class="fa-solid fa-dice text-sm"></i> Bana Kahve Öner! 🎲
+            </button>
+            <button onclick="toggleQRModal()" class="px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-xs font-semibold text-white flex items-center gap-2 shadow-lg transition">
+                <i class="fa-solid fa-qrcode text-pink-400"></i> QR Menü 📱
+            </button>
+            <button onclick="toggleTheme()" id="theme-toggle-btn" class="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-yellow-300 flex items-center justify-center text-lg shadow-lg transition" title="Tema Değiştir">
+                <i class="fa-solid fa-moon"></i>
+            </button>
+        </div>
+
+        <div class="absolute -top-24 -left-24 w-96 h-96 bg-pink-500/30 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute top-1/2 -right-24 w-96 h-96 bg-cyan-500/30 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="relative z-10 max-w-4xl mx-auto space-y-6">
+            
+            <!-- Canlı Açık/Kapalı Rozeti -->
+            <div class="inline-flex flex-wrap justify-center items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-sm font-semibold text-pink-300 shadow-lg tracking-wide">
+                <i class="fa-solid fa-heart text-pink-500 animate-pulse"></i> Şehrin En Renkli Buluşma Noktası
+                <span class="w-1.5 h-1.5 rounded-full bg-slate-400 hidden sm:inline-block"></span>
+                <span id="open-status-badge" class="flex items-center gap-1.5 text-xs text-emerald-400 font-medium">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> Şu An Açığız (08:30 - 23:30)
+                </span>
+            </div>
+
+            <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight">
+                VIBE & <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-400 to-cyan-400">BREW</span>
+            </h1>
+
+            <p class="text-lg md:text-2xl text-slate-300 font-light max-w-2xl mx-auto leading-relaxed">
+                Renkli anlar, taze aromalar ve lezzetli buluşmalar burada başlar. Kahvenizi seçin, anın tadını çıkarın!
+            </p>
+
+            <div class="pt-4 flex flex-wrap justify-center gap-4">
+                <a href="#lezzetler" class="px-8 py-4 rounded-full bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 hover:opacity-90 font-bold shadow-lg shadow-purple-500/30 transition transform hover:-translate-y-1">
+                    Menüyü Keşfet <i class="fa-solid fa-arrow-down ml-2"></i>
+                </a>
+                <a href="#iletisim" class="px-8 py-4 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 font-semibold transition">
+                    Masa Ayır & İletişim
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- MENÜ VE FİLTRELEME BÖLÜMÜ -->
+    <section id="lezzetler" class="py-24 px-6 max-w-7xl mx-auto">
+        <div class="text-center max-w-2xl mx-auto mb-10">
+            <span class="text-pink-400 font-semibold text-sm tracking-wider uppercase bg-pink-500/10 px-4 py-1.5 rounded-full border border-pink-500/20">Zengin Menümüz</span>
+            <h2 class="text-3xl md:text-5xl font-bold mt-4 mb-4">İmza <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500">Lezzetlerimiz</span></h2>
+            <p class="text-slate-400">Her damağa hitap eden, görsel bir şölen sunan taze ve lezzetli seçenekler.</p>
+        </div>
+
+        <!-- Kategori Filtre Butonları & Arama Çubuğu -->
+        <div class="flex flex-col md:flex-row items-center justify-between gap-4 mb-12 bg-slate-900/60 p-4 rounded-2xl border border-slate-800 backdrop-blur-sm">
+            <div class="flex flex-wrap items-center justify-center gap-2" id="kategori-filtreler">
+                <button onclick="filterKategori('HEPSİ', this)" class="filter-btn px-4 py-2 rounded-xl bg-pink-500 text-white text-xs font-semibold transition">Tümü</button>
+                <button onclick="filterKategori('Sıcak İçecek', this)" class="filter-btn px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs font-semibold transition">☕ Sıcak İçecek</button>
+                <button onclick="filterKategori('Soğuk İçecek', this)" class="filter-btn px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs font-semibold transition">🍹 Soğuk İçecek</button>
+                <button onclick="filterKategori('Tatlı & Pasta', this)" class="filter-btn px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs font-semibold transition">🍰 Tatlı & Pasta</button>
+                <button onclick="filterKategori('Fırından', this)" class="filter-btn px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs font-semibold transition">🥐 Fırından</button>
+            </div>
+            <div class="relative w-full md:w-64">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                <input type="text" id="lezzet-arama" onkeyup="searchLezzetler()" placeholder="Lezzet veya besin ara..." class="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-pink-500 transition">
+            </div>
+        </div>
+
+        <!-- Ürün Kartları Listesi -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8" id="menu-grid">
+            {% for lezzet in lezzetler %}
+            <div class="lezzet-kart bg-slate-900/90 border border-slate-800 rounded-3xl overflow-hidden hover:border-slate-700 transition duration-500 group hover:-translate-y-2 flex flex-col justify-between shadow-2xl relative" data-kategori="{{ lezzet.kategori }}" data-isim="{{ lezzet.isim|lower }}" data-diyet="{{ lezzet.diyet|lower }}" data-resim="{{ lezzet.resim }}" data-fiyat="{{ lezzet.fiyat }}" data-aciklama="{{ lezzet.aciklama }}">
+
+                <div>
+                    <div class="relative h-52 w-full overflow-hidden bg-slate-800">
+                        <img src="{{ lezzet.resim }}" alt="{{ lezzet.isim }}" class="w-full h-full object-cover group-hover:scale-110 transition duration-700 ease-out">
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent opacity-80"></div>
+
+                        {% if lezzet.rozet %}
+                        <span class="absolute top-4 left-4 bg-gradient-to-r from-amber-500 to-pink-500 text-white text-[11px] font-extrabold px-3 py-1 rounded-full shadow-lg border border-white/20 animate-pulse">
+                            {{ lezzet.rozet }}
+                        </span>
+                        {% endif %}
+
+                        <span class="absolute top-4 right-4 bg-slate-950/80 backdrop-blur-md text-white text-xs font-semibold px-3 py-1.5 rounded-full border border-white/10 shadow-lg">
+                            {{ lezzet.kategori }}
+                        </span>
+
+                        <div class="absolute bottom-3 left-4 w-10 h-10 rounded-xl bg-gradient-to-tr {{ lezzet.renk }} flex items-center justify-center text-white shadow-lg">
+                            <i class="fa-solid {{ lezzet.ikon }}"></i>
+                        </div>
+                    </div>
+
+                    <div class="p-6">
+                        <div class="flex items-center justify-between gap-2 mb-1">
+                            <h3 class="text-xl font-bold text-white group-hover:text-pink-400 transition">{{ lezzet.isim }}</h3>
+                        </div>
+
+                        <!-- Hazırlanma Süresi Rozeti -->
+                        {% if lezzet.sure %}
+                        <span class="text-[11px] text-amber-400/90 font-medium flex items-center gap-1 mb-2">
+                            <i class="fa-regular fa-clock"></i> {{ lezzet.sure }}
+                        </span>
+                        {% endif %}
+
+                        <p class="text-slate-400 text-xs md:text-sm leading-relaxed">{{ lezzet.aciklama }}</p>
+
+                        <!-- Diyet & Besin Etiketleri -->
+                        {% if lezzet.diyet %}
+                        <div class="mt-3 text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-xl w-fit border border-emerald-500/20 flex items-center gap-1.5">
+                            <i class="fa-solid fa-leaf text-xs"></i> {{ lezzet.diyet }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="px-6 pb-6 pt-2 border-t border-slate-800/60 flex items-center justify-between mt-auto">
+                    <div>
+                        <span class="text-xs text-slate-500 block">Fiyat</span>
+                        <span class="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-300">{{ lezzet.fiyat }}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="toggleLike(this, '{{ lezzet.isim }}')" class="px-3 py-2 rounded-xl bg-slate-800/80 hover:bg-pink-500/20 text-slate-400 hover:text-pink-400 border border-slate-700/50 text-xs font-medium flex items-center gap-1.5 transition">
+                            <i class="fa-regular fa-heart"></i>
+                            <span class="like-count">12</span>
+                        </button>
+                        <button onclick="addToCart('{{ lezzet.isim }}', '{{ lezzet.fiyat }}', '{{ lezzet.resim }}')" class="px-4 py-2.5 rounded-xl bg-gradient-to-r {{ lezzet.renk }} text-white text-xs font-bold shadow-lg hover:opacity-90 transition transform active:scale-95 flex items-center gap-2">
+                            <i class="fa-solid fa-plus"></i> İste
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- INSTAGRAM FOTOĞRAF AKIŞI GALERİSİ -->
+    <section id="galeri" class="py-20 px-6 max-w-7xl mx-auto border-t border-slate-800/60">
+        <div class="text-center max-w-2xl mx-auto mb-16">
+            <span class="text-amber-400 font-semibold text-sm tracking-wider uppercase bg-amber-500/10 px-4 py-1.5 rounded-full border border-amber-500/20">@vibeandbrew_tr</span>
+            <h2 class="text-3xl md:text-5xl font-bold mt-4 mb-4">Instagram <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-pink-400 to-purple-400">Kareleri</span></h2>
+            <p class="text-slate-400">Misafirlerimizin objektifinden Vibe & Brew atmosferi.</p>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="relative h-64 rounded-3xl overflow-hidden group shadow-2xl">
+                <img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=600&q=80" alt="Instagram 1" class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent opacity-0 group-hover:opacity-100 transition duration-300 flex items-end p-4 justify-between">
+                    <span class="text-xs font-semibold text-white"><i class="fa-brands fa-instagram text-pink-400 mr-1"></i> @zeynep_coffee</span>
+                    <span class="text-xs font-bold text-pink-400"><i class="fa-solid fa-heart mr-1"></i> 248</span>
+                </div>
+            </div>
+            <div class="relative h-64 rounded-3xl overflow-hidden group shadow-2xl">
+                <img src="https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=600&q=80" alt="Instagram 2" class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent opacity-0 group-hover:opacity-100 transition duration-300 flex items-end p-4 justify-between">
+                    <span class="text-xs font-semibold text-white"><i class="fa-brands fa-instagram text-pink-400 mr-1"></i> @mert_vibe</span>
+                    <span class="text-xs font-bold text-pink-400"><i class="fa-solid fa-heart mr-1"></i> 412</span>
+                </div>
+            </div>
+            <div class="relative h-64 rounded-3xl overflow-hidden group shadow-2xl">
+                <img src="https://images.unsplash.com/photo-1442512595331-e89e73853f31?auto=format&fit=crop&w=600&q=80" alt="Instagram 3" class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent opacity-0 group-hover:opacity-100 transition duration-300 flex items-end p-4 justify-between">
+                    <span class="text-xs font-semibold text-white"><i class="fa-brands fa-instagram text-pink-400 mr-1"></i> @eda_designs</span>
+                    <span class="text-xs font-bold text-pink-400"><i class="fa-solid fa-heart mr-1"></i> 329</span>
+                </div>
+            </div>
+            <div class="relative h-64 rounded-3xl overflow-hidden group shadow-2xl">
+                <img src="https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=600&q=80" alt="Instagram 4" class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent opacity-0 group-hover:opacity-100 transition duration-300 flex items-end p-4 justify-between">
+                    <span class="text-xs font-semibold text-white"><i class="fa-brands fa-instagram text-pink-400 mr-1"></i> @burak_life</span>
+                    <span class="text-xs font-bold text-pink-400"><i class="fa-solid fa-heart mr-1"></i> 518</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- MÜŞTERİ YORUMLARI -->
+    <section id="yorumlar" class="py-20 px-6 max-w-7xl mx-auto border-t border-slate-800/60">
+        <div class="text-center max-w-2xl mx-auto mb-16">
+            <span class="text-purple-400 font-semibold text-sm tracking-wider uppercase bg-purple-500/10 px-4 py-1.5 rounded-full border border-purple-500/20">Misafir Yorumları</span>
+            <h2 class="text-3xl md:text-5xl font-bold mt-4 mb-4">Sizden <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-400">Gelenler</span></h2>
+            <p class="text-slate-400">Vibe & Brew deneyimini yaşayan misafirlerimizin görüşleri.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="bg-slate-900/80 border border-slate-800 p-8 rounded-3xl space-y-4 hover:border-pink-500/40 transition duration-300 shadow-xl">
+                <div class="flex items-center gap-1 text-amber-400 text-sm">
+                    <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                </div>
+                <p class="text-slate-300 text-sm italic leading-relaxed">"Gökkuşağı Latte ve San Sebastian Cheesecake ikilisi harikaydı! Kadıköy'deki en keyifli ve renkli mekan."</p>
+                <div class="flex items-center gap-3 pt-2 border-t border-slate-800/80">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-pink-500 to-purple-500 flex items-center justify-center font-bold text-white text-sm">S</div>
+                    <div>
+                        <h4 class="text-sm font-semibold text-white">Selin A.</h4>
+                        <span class="text-xs text-slate-500">Düzenli Misafir</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-900/80 border border-slate-800 p-8 rounded-3xl space-y-4 hover:border-purple-500/40 transition duration-300 shadow-xl">
+                <div class="flex items-center gap-1 text-amber-400 text-sm">
+                    <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                </div>
+                <p class="text-slate-300 text-sm italic leading-relaxed">"Sakin ortamı ve nefis kahve aromalarıyla hem çalışmak hem de dinlenmek için mükemmel bir yer."</p>
+                <div class="flex items-center gap-3 pt-2 border-t border-slate-800/80">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-500 flex items-center justify-center font-bold text-white text-sm">C</div>
+                    <div>
+                        <h4 class="text-sm font-semibold text-white">Caner K.</h4>
+                        <span class="text-xs text-slate-500">Kahve Sever</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-900/80 border border-slate-800 p-8 rounded-3xl space-y-4 hover:border-cyan-500/40 transition duration-300 shadow-xl">
+                <div class="flex items-center gap-1 text-amber-400 text-sm">
+                    <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                </div>
+                <p class="text-slate-300 text-sm italic leading-relaxed">"Çıtır Kruvasanları efsane! Taze demlenmiş hibiskus çayı ile güne harika bir başlangıç yaptık."</p>
+                <div class="flex items-center gap-3 pt-2 border-t border-slate-800/80">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-amber-500 to-orange-500 flex items-center justify-center font-bold text-white text-sm">E</div>
+                    <div>
+                        <h4 class="text-sm font-semibold text-white">Elif Y.</h4>
+                        <span class="text-xs text-slate-500">Görsel Sanatçı</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 💬 SIKÇA SORULAN SORULAR (SSS AKORDİYONU) -->
+    <section id="faq" class="py-20 px-6 max-w-4xl mx-auto border-t border-slate-800/60">
+        <div class="text-center max-w-2xl mx-auto mb-16">
+            <span class="text-cyan-400 font-semibold text-sm tracking-wider uppercase bg-cyan-500/10 px-4 py-1.5 rounded-full border border-cyan-500/20">Merak Edilenler</span>
+            <h2 class="text-3xl md:text-5xl font-bold mt-4 mb-4">Sıkça Sorulan <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">Sorular</span></h2>
+            <p class="text-slate-400">Kafemiz ve servisimiz hakkında en çok sorulan yanıtlar.</p>
+        </div>
+
+        <div class="space-y-4">
+            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden transition">
+                <button onclick="toggleFAQ(this)" class="w-full p-6 text-left font-semibold text-base flex items-center justify-between text-white hover:text-pink-400 transition">
+                    <span>🐶 Evcil hayvan kabul ediyor musunuz?</span>
+                    <i class="fa-solid fa-chevron-down text-xs text-slate-400 transition-transform"></i>
+                </button>
+                <div class="faq-content hidden px-6 pb-6 text-xs md:text-sm text-slate-400 leading-relaxed border-t border-slate-800/60 pt-4">
+                    Evet! Vibe & Brew %100 pet-friendly (evcil hayvan dostu) bir mekandır. Minik dostlarınızla dilediğiniz gibi gelebilirsiniz.
+                </div>
+            </div>
+
+            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden transition">
+                <button onclick="toggleFAQ(this)" class="w-full p-6 text-left font-semibold text-base flex items-center justify-between text-white hover:text-pink-400 transition">
+                    <span>📶 Hızlı Wi-Fi ve çalışma alanları var mı?</span>
+                    <i class="fa-solid fa-chevron-down text-xs text-slate-400 transition-transform"></i>
+                </button>
+                <div class="faq-content hidden px-6 pb-6 text-xs md:text-sm text-slate-400 leading-relaxed border-t border-slate-800/60 pt-4">
+                    Tüm masalarımızda yüksek hızlı fiber Wi-Fi ve priz erişimi mevcuttur. Uzaktan çalışanlar ve öğrenciler için ideal çalışma ortamı sunuyoruz.
+                </div>
+            </div>
+
+            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden transition">
+                <button onclick="toggleFAQ(this)" class="w-full p-6 text-left font-semibold text-base flex items-center justify-between text-white hover:text-pink-400 transition">
+                    <span>🌾 Glutensiz ve Vegan seçenekleriniz mevcut mu?</span>
+                    <i class="fa-solid fa-chevron-down text-xs text-slate-400 transition-transform"></i>
+                </button>
+                <div class="faq-content hidden px-6 pb-6 text-xs md:text-sm text-slate-400 leading-relaxed border-t border-slate-800/60 pt-4">
+                    Evet, menümüzde glutensiz cheesecake'ler, vegan tatlılar ve badem/yulaf sütü opsiyonlu içecekler yer almaktadır. Menüdeki etiketlerden takip edebilirsiniz.
+                </div>
+            </div>
+
+            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden transition">
+                <button onclick="toggleFAQ(this)" class="w-full p-6 text-left font-semibold text-base flex items-center justify-between text-white hover:text-pink-400 transition">
+                    <span>🎉 Özel etkinlik veya doğum günü organizasyonu yapıyor musunuz?</span>
+                    <i class="fa-solid fa-chevron-down text-xs text-slate-400 transition-transform"></i>
+                </button>
+                <div class="faq-content hidden px-6 pb-6 text-xs md:text-sm text-slate-400 leading-relaxed border-t border-slate-800/60 pt-4">
+                    Evet, alt salonumuzda veya grup masalarımızda doğum günü, kutlama ve özel toplantı rezervasyonları kabul ediyoruz. İletişim formundan mesaj atabilirsiniz.
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- İLETİŞİM & REZERVASYON -->
+    <section id="iletisim" class="relative py-20 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 border-t border-slate-800/60">
+        <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-60 bg-gradient-to-r from-pink-500/10 via-purple-500/10 to-cyan-500/10 blur-3xl pointer-events-none"></div>
+
+        <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+
+            <div class="space-y-8">
+                <div>
+                    <span class="text-pink-400 font-semibold text-sm tracking-wider uppercase">Bizimle Bağlantıda Kalın</span>
+                    <h2 class="text-3xl md:text-5xl font-bold mt-2">Masanızı <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-400">Ayırtın</span></h2>
+                    <p class="text-slate-400 mt-4 leading-relaxed">
+                        Arkadaş buluşmaları, doğum günü kutlamaları veya sadece sessizce kahve içip çalışmak için en güzel masayı sizin için hazırlayalım.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="p-5 rounded-2xl bg-slate-800/40 border border-slate-700/50 flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-pink-500/20 text-pink-400 flex items-center justify-center text-xl shrink-0"><i class="fa-solid fa-location-dot"></i></div>
+                        <div class="flex-1">
+                            <h4 class="font-semibold text-sm text-white">Adresimiz</h4>
+                            <p class="text-xs text-slate-400">Moda Cad. No:42 Kadıköy / İstanbul</p>
+                            <a href="https://maps.google.com/?q=Moda+Kadıköy+İstanbul" target="_blank" class="inline-block mt-1 text-[11px] font-bold text-pink-400 hover:underline">Google Maps'te Aç 📍</a>
+                        </div>
+                    </div>
+                    <div class="p-5 rounded-2xl bg-slate-800/40 border border-slate-700/50 flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-xl shrink-0"><i class="fa-solid fa-phone"></i></div>
+                        <div>
+                            <h4 class="font-semibold text-sm text-white">Rezervasyon</h4>
+                            <p class="text-xs text-slate-400">+90 (216) 555 42 42</p>
+                            <a href="https://wa.me/902165554242" target="_blank" class="inline-block mt-1 text-[11px] font-bold text-emerald-400 hover:underline">WhatsApp Hattı 💬</a>
+                        </div>
+                    </div>
+                    <div class="p-5 rounded-2xl bg-slate-800/40 border border-slate-700/50 flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center text-xl shrink-0"><i class="fa-solid fa-clock"></i></div>
+                        <div>
+                            <h4 class="font-semibold text-sm text-white">Çalışma Saatleri</h4>
+                            <p class="text-xs text-slate-400">Haftanın Her Günü: 08:30 - 23:30</p>
+                        </div>
+                    </div>
+                    <div class="p-5 rounded-2xl bg-slate-800/40 border border-slate-700/50 flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-xl shrink-0"><i class="fa-brands fa-instagram"></i></div>
+                        <div>
+                            <h4 class="font-semibold text-sm text-white">Instagram</h4>
+                            <p class="text-xs text-slate-400">@vibeandbrew_tr</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-900/90 border border-slate-800 p-8 rounded-3xl shadow-2xl relative">
+                <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-paper-plane text-pink-500"></i> Hızlı Mesaj & Rezervasyon Formu
+                </h3>
+
+                <form action="{% url 'cafe_tanitim' %}" method="POST" class="space-y-4">
+                    {% csrf_token %}
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Adınız Soyadınız</label>
+                        <input type="text" name="isim" required placeholder="Örn: Bahar" class="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl focus:outline-none focus:border-pink-500 text-sm text-white transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Telefon Numarası</label>
+                        <input type="text" name="telefon" required placeholder="05XX XXX XX XX" class="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl focus:outline-none focus:border-pink-500 text-sm text-white transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Mesajınız veya Rezervasyon Detayınız</label>
+                        <textarea name="mesaj" rows="3" required placeholder="Kaç kişi geleceksiniz, özel bir isteğiniz var mı?" class="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl focus:outline-none focus:border-pink-500 text-sm text-white transition resize-none"></textarea>
+                    </div>
+                    <button type="submit" class="w-full py-4 rounded-xl bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 hover:opacity-95 font-bold text-sm uppercase tracking-wider shadow-lg shadow-pink-500/20 transition transform active:scale-95">
+                        Mesajı Gönder 🚀
+                    </button>
+                </form>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- FOOTER VE STICKY SPOTIFY PLAYLIST WIDGET -->
+    <footer class="py-8 border-t border-slate-900 text-center text-slate-500 text-sm">
+        <p>&copy; 2026 Vibe & Brew Cafe. Tüm Hakları Saklıdır. | Renkli ve Dinamik Django Projesi.</p>
+    </footer>
+
+    <!-- STICKY SPOTIFY MUSIC BAR -->
+    <div class="fixed bottom-0 left-0 right-0 z-30 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 px-4 py-2.5 flex items-center justify-between shadow-2xl">
+        <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-500 to-green-600 flex items-center justify-center text-white text-sm shadow">
+                <i class="fa-brands fa-spotify text-lg"></i>
+            </div>
+            <div class="hidden sm:block">
+                <h5 class="text-xs font-bold text-white flex items-center gap-2">
+                    Kafede Çalan Müzik: Lofi Coffee Beats
+                    <span class="flex items-center gap-0.5 h-3">
+                        <span class="w-1 bg-emerald-400 rounded-full equalizer-bar" style="animation-delay: 0s;"></span>
+                        <span class="w-1 bg-emerald-400 rounded-full equalizer-bar" style="animation-delay: 0.3s;"></span>
+                        <span class="w-1 bg-emerald-400 rounded-full equalizer-bar" style="animation-delay: 0.6s;"></span>
+                    </span>
+                </h5>
+                <span class="text-[10px] text-slate-400">Vibe & Brew Official Chill Playlist</span>
+            </div>
+        </div>
+        <a href="https://open.spotify.com" target="_blank" class="px-3.5 py-1.5 rounded-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs flex items-center gap-1.5 transition">
+            <i class="fa-brands fa-spotify"></i> Spotify'da Dinle
+        </a>
+    </div>
+
+    <!-- SAĞ ALT YÜZEN SEPET BUTONU -->
+    <button onclick="toggleCartDrawer()" class="fixed bottom-14 right-6 z-40 px-5 py-4 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold shadow-2xl shadow-pink-500/40 hover:scale-105 active:scale-95 transition flex items-center gap-3">
+        <i class="fa-solid fa-cart-shopping text-lg"></i>
+        <span>Siparişiniz</span>
+        <span id="cart-badge" class="px-2 py-0.5 rounded-full bg-white text-pink-600 text-xs font-extrabold shadow">0</span>
+    </button>
+
+    <!-- SEPET DRAWER (KUPON KODU EKLENMİŞ) -->
+    <div id="cart-drawer" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm transition-opacity">
+        <div class="fixed right-0 top-0 bottom-0 w-full max-w-md bg-slate-900 border-l border-slate-800 p-6 flex flex-col justify-between shadow-2xl overflow-y-auto">
+            <div>
+                <div class="flex items-center justify-between pb-4 border-b border-slate-800 mb-6">
+                    <h3 class="text-xl font-bold flex items-center gap-2">
+                        <i class="fa-solid fa-basket-shopping text-pink-500"></i> Sipariş Sepetiniz
+                    </h3>
+                    <button onclick="toggleCartDrawer()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <div id="cart-items-container" class="space-y-4">
+                    <div id="empty-cart-msg" class="text-center py-12 text-slate-500 space-y-3">
+                        <i class="fa-solid fa-mug-hot text-4xl text-slate-700"></i>
+                        <p class="text-sm">Sepetiniz henüz boş. Menüden lezzet ekleyebilirsiniz!</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-6 border-t border-slate-800 space-y-4">
+                <!-- 🏷️ KUPON KODU GİRİŞ ALANI -->
+                <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800 space-y-2">
+                    <label class="block text-[11px] font-semibold text-slate-400 uppercase">🏷️ İndirim Kuponu</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="coupon-input" placeholder="Örn: VIBE20" class="flex-1 px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white uppercase focus:outline-none focus:border-pink-500">
+                        <button onclick="applyCoupon()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold text-xs hover:opacity-90 transition">Uygula</button>
+                    </div>
+                    <p id="coupon-status-msg" class="text-[10px] hidden font-semibold"></p>
+                </div>
+
+                <div class="flex items-center justify-between text-lg font-bold">
+                    <span class="text-slate-400">Toplam Tutar:</span>
+                    <div class="text-right">
+                        <span id="discounted-old-price" class="text-xs text-slate-500 line-through mr-1 hidden"></span>
+                        <span id="cart-total-price" class="text-2xl text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-amber-400">0 TL</span>
+                    </div>
+                </div>
+                <button onclick="sendWhatsAppOrder()" class="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:opacity-90 font-bold text-white text-sm shadow-xl flex items-center justify-center gap-2 transition active:scale-95">
+                    <i class="fa-brands fa-whatsapp text-lg"></i> WhatsApp ile Siparişi Gönder
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🎁 SADAKAT KARTIM MODALI -->
+    <div id="loyalty-modal" class="fixed inset-0 z-50 hidden bg-black/75 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 p-8 rounded-3xl max-w-sm w-full text-center space-y-6 shadow-2xl relative">
+            <button onclick="toggleLoyaltyModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="space-y-2">
+                <span class="text-amber-400 text-xs font-semibold uppercase tracking-wider">Vibe Loyalty Pass</span>
+                <h3 class="text-2xl font-bold">Kahve Damga Kartınız ☕</h3>
+                <p class="text-slate-400 text-xs">Her kahve siparişinizde 1 damga kazanın! 6 damgada 1 kahve hediye.</p>
+            </div>
+
+            <!-- 6 Damga Kutucuğu -->
+            <div class="grid grid-cols-3 gap-4 py-4" id="stamps-grid">
+                <!-- Javascript ile doldurulur -->
+            </div>
+
+            <div id="loyalty-reward-box" class="hidden p-4 bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-500/40 rounded-2xl space-y-1">
+                <h5 class="text-sm font-bold text-emerald-400">🎉 Tebrikler! Hediyeniz Hazır!</h5>
+                <p class="text-[11px] text-slate-300">Sonraki siparişinizde kullanın: <strong class="text-white">BEDAVAKAHVE</strong></p>
+            </div>
+
+            <p class="text-slate-500 text-[11px]">Sipariş verdikçe damgalarınız otomatik eklenir.</p>
+        </div>
+    </div>
+
+    <!-- QR MENÜ MODALI -->
+    <div id="qr-modal" class="fixed inset-0 z-50 hidden bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 p-8 rounded-3xl max-w-sm w-full text-center space-y-6 shadow-2xl relative">
+            <button onclick="toggleQRModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="space-y-2">
+                <span class="text-pink-400 text-xs font-semibold uppercase tracking-wider">Dijital Menü</span>
+                <h3 class="text-2xl font-bold">QR Menü Okutun 📱</h3>
+                <p class="text-slate-400 text-xs">Kafemizde masanızdan menüyü görüntülemek için QR kodu taratın.</p>
+            </div>
+            <div class="p-4 bg-white rounded-2xl inline-block shadow-inner">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=http://127.0.0.1:8000/" alt="QR Menu" class="w-44 h-44 mx-auto">
+            </div>
+            <p class="text-slate-500 text-[11px]">Vibe & Brew Masaya Servis Sistemi</p>
+        </div>
+    </div>
+
+    <!-- 🎲 SÜRPRİZ KAHVE ÖNERİCİ MODAL -->
+    <div id="surprise-modal" class="fixed inset-0 z-50 hidden bg-black/75 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 p-8 rounded-3xl max-w-md w-full text-center space-y-6 shadow-2xl relative">
+            <button onclick="toggleSurpriseModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="space-y-2">
+                <span class="text-amber-400 text-xs font-semibold uppercase tracking-wider">Günün Sürprizi</span>
+                <h3 class="text-2xl font-bold">Sizin İçin Seçtiğimiz Lezzet! 🎲</h3>
+            </div>
+            
+            <div id="surprise-card-content" class="bg-slate-950 border border-slate-800 p-6 rounded-2xl space-y-4">
+                <img id="surprise-img" src="" class="w-full h-44 object-cover rounded-xl shadow-lg">
+                <div>
+                    <h4 id="surprise-title" class="text-xl font-bold text-white"></h4>
+                    <span id="surprise-price" class="text-lg font-extrabold text-pink-400"></span>
+                    <p id="surprise-desc" class="text-xs text-slate-400 mt-2 leading-relaxed"></p>
+                </div>
+            </div>
+
+            <button id="surprise-add-btn" onclick="" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-pink-500 to-purple-500 font-bold text-white text-xs uppercase shadow-lg hover:opacity-90 transition">
+                <i class="fa-solid fa-cart-plus mr-1"></i> Sepetime Ekle
+            </button>
+        </div>
+    </div>
+
+    <!-- INTERACTION SCRIPTS -->
+    <script>
+        // 🔔 CANLI TOAST BİLDİRİMLERİ
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast-animate p-4 rounded-2xl shadow-2xl text-white font-medium text-xs flex items-center gap-3 backdrop-blur-md border border-white/20 pointer-events-auto ${
+                type === 'success' ? 'bg-gradient-to-r from-emerald-500 to-teal-600' : 'bg-gradient-to-r from-pink-500 to-purple-600'
+            }`;
+            toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-circle-check text-emerald-200' : 'fa-heart text-pink-200'} text-base"></i> <span>${message}</span>`;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.4s ease';
+                setTimeout(() => toast.remove(), 400);
+            }, 3000);
+        }
+
+        // 🟢 Açık / Kapalı Durumu Kontrolü
+        function checkOpenStatus() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            const totalMinutes = hours * 60 + minutes;
+
+            const openMinutes = 8 * 60 + 30; // 08:30
+            const closeMinutes = 23 * 60 + 30; // 23:30
+
+            const badge = document.getElementById('open-status-badge');
+            if (badge) {
+                if (totalMinutes >= openMinutes && totalMinutes <= closeMinutes) {
+                    badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> Şu An Açığız (08:30 - 23:30)`;
+                    badge.className = "flex items-center gap-1.5 text-xs text-emerald-400 font-medium";
+                } else {
+                    badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-rose-500"></span> Şu An Kapalıyız (Açılış: 08:30)`;
+                    badge.className = "flex items-center gap-1.5 text-xs text-rose-400 font-medium";
+                }
+            }
+        }
+        checkOpenStatus();
+
+        // 🌙 Tema Değiştirme (Dark / Light)
+        function toggleTheme() {
+            const body = document.body;
+            const btn = document.getElementById('theme-toggle-btn');
+            if (body.classList.contains('bg-slate-950')) {
+                body.classList.remove('bg-slate-950', 'text-white');
+                body.classList.add('bg-slate-100', 'text-slate-900');
+                btn.innerHTML = `<i class="fa-solid fa-sun text-amber-500"></i>`;
+                showToast("☀️ Gündüz moduna geçildi", "info");
+            } else {
+                body.classList.remove('bg-slate-100', 'text-slate-900');
+                body.classList.add('bg-slate-950', 'text-white');
+                btn.innerHTML = `<i class="fa-solid fa-moon text-yellow-300"></i>`;
+                showToast("🌙 Gece moduna geçildi", "info");
+            }
+        }
+
+        // 💬 SSS Akordiyon Toggle
+        function toggleFAQ(btn) {
+            const content = btn.nextElementSibling;
+            const icon = btn.querySelector('i');
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+                icon.style.transform = 'rotate(180deg)';
+            } else {
+                content.classList.add('hidden');
+                icon.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        // 📱 QR Modal Toggle
+        function toggleQRModal() {
+            const modal = document.getElementById('qr-modal');
+            modal.classList.toggle('hidden');
+        }
+
+        // 🎁 SADAKAT KARTIM MANTIĞI
+        let stampCount = parseInt(localStorage.getItem('vibe_stamps') || '0');
+
+        function toggleLoyaltyModal() {
+            updateLoyaltyUI();
+            document.getElementById('loyalty-modal').classList.toggle('hidden');
+        }
+
+        function addLoyaltyStamp() {
+            if (stampCount < 6) {
+                stampCount += 1;
+                localStorage.setItem('vibe_stamps', stampCount);
+                updateLoyaltyUI();
+                if (stampCount === 6) {
+                    showToast("🎉 Tebrikler! 6 damga tamamlandı! 1 Ücretsiz Kahve Hediyesi Kazandınız!", "success");
+                } else {
+                    showToast(`☕ Sadakat kartınıza 1 yeni damga eklendi (${stampCount}/6)`, "success");
+                }
+            }
+        }
+
+        function updateLoyaltyUI() {
+            document.getElementById('stamp-count-badge').textContent = stampCount;
+            const grid = document.getElementById('stamps-grid');
+            const rewardBox = document.getElementById('loyalty-reward-box');
+
+            let html = '';
+            for (let i = 1; i <= 6; i++) {
+                if (i <= stampCount) {
+                    html += `<div class="h-20 rounded-2xl bg-gradient-to-tr from-amber-500 to-pink-500 flex flex-col items-center justify-center text-white shadow-lg animate-bounce">
+                                <i class="fa-solid fa-mug-hot text-xl"></i>
+                                <span class="text-[10px] font-bold mt-1">Dolu</span>
+                             </div>`;
+                } else {
+                    html += `<div class="h-20 rounded-2xl bg-slate-800/80 border border-slate-700/60 border-dashed flex flex-col items-center justify-center text-slate-500">
+                                <i class="fa-regular fa-mug-hot text-lg"></i>
+                                <span class="text-[10px] font-medium mt-1">${i}. Damga</span>
+                             </div>`;
+                }
+            }
+            grid.innerHTML = html;
+
+            if (stampCount >= 6) {
+                rewardBox.classList.remove('hidden');
+            } else {
+                rewardBox.classList.add('hidden');
+            }
+        }
+        updateLoyaltyUI();
+
+        // 🎲 SÜRPRİZ KAHVE SEÇİCİ
+        function toggleSurpriseModal() {
+            document.getElementById('surprise-modal').classList.toggle('hidden');
+        }
+
+        function pickSurpriseItem() {
+            const cards = Array.from(document.querySelectorAll('.lezzet-kart'));
+            if (cards.length === 0) return;
+            const randomCard = cards[Math.floor(Math.random() * cards.length)];
+            
+            const isim = randomCard.getAttribute('data-isim');
+            const resim = randomCard.getAttribute('data-resim');
+            const fiyat = randomCard.getAttribute('data-fiyat');
+            const aciklama = randomCard.getAttribute('data-aciklama');
+
+            document.getElementById('surprise-img').src = resim;
+            document.getElementById('surprise-title').textContent = randomCard.querySelector('h3').textContent;
+            document.getElementById('surprise-price').textContent = fiyat;
+            document.getElementById('surprise-desc').textContent = aciklama;
+
+            const btn = document.getElementById('surprise-add-btn');
+            btn.onclick = function() {
+                addToCart(randomCard.querySelector('h3').textContent, fiyat, resim);
+                toggleSurpriseModal();
+            };
+
+            toggleSurpriseModal();
+        }
+
+        // 🔍 MENÜ FİLTRELEME & ARAMA
+        function filterKategori(kategori, btn) {
+            document.querySelectorAll('.filter-btn').forEach(b => {
+                b.className = "filter-btn px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs font-semibold transition";
+            });
+            btn.className = "filter-btn px-4 py-2 rounded-xl bg-pink-500 text-white text-xs font-semibold transition";
+
+            document.querySelectorAll('.lezzet-kart').forEach(card => {
+                const itemKategori = card.getAttribute('data-kategori');
+                if (kategori === 'HEPSİ' || itemKategori === kategori) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        function searchLezzetler() {
+            const query = document.getElementById('lezzet-arama').value.toLowerCase().trim();
+            document.querySelectorAll('.lezzet-kart').forEach(card => {
+                const name = card.getAttribute('data-isim') || '';
+                const kat = (card.getAttribute('data-kategori') || '').toLowerCase();
+                const diyet = (card.getAttribute('data-diyet') || '').toLowerCase();
+                if (name.includes(query) || kat.includes(query) || diyet.includes(query)) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // ❤️ BEĞENİ KALP BUTONU
+        function toggleLike(btn, name) {
+            const icon = btn.querySelector('i');
+            const countSpan = btn.querySelector('.like-count');
+            let count = parseInt(countSpan.textContent) || 0;
+
+            if (icon.classList.contains('fa-regular')) {
+                icon.classList.remove('fa-regular');
+                icon.classList.add('fa-solid', 'text-pink-500');
+                btn.classList.add('border-pink-500/50', 'bg-pink-500/10');
+                countSpan.textContent = count + 1;
+                showToast(`❤️ ${name} favorilere eklendi!`, 'info');
+            } else {
+                icon.classList.remove('fa-solid', 'text-pink-500');
+                icon.classList.add('fa-regular');
+                btn.classList.remove('border-pink-500/50', 'bg-pink-500/10');
+                countSpan.textContent = Math.max(0, count - 1);
+            }
+        }
+
+        // 🛒 CANLI SEPET MANTIĞI VE İNDİRİM KUPONU
+        let cart = [];
+        let appliedDiscount = 0; // 0.20 = %20
+
+        function toggleCartDrawer() {
+            const drawer = document.getElementById('cart-drawer');
+            drawer.classList.toggle('hidden');
+        }
+
+        function addToCart(name, priceStr, image) {
+            const price = parseInt(priceStr.replace(/[^0-9]/g, '')) || 0;
+            const existing = cart.find(item => item.name === name);
+            if (existing) {
+                existing.quantity += 1;
+            } else {
+                cart.push({ name, price, priceStr, image, quantity: 1 });
+            }
+            updateCartUI();
+            addLoyaltyStamp(); // Sadakat damgası ekle
+            showToast(`✨ ${name} sepete eklendi!`, 'success');
+        }
+
+        function changeQuantity(name, delta) {
+            const item = cart.find(i => i.name === name);
+            if (item) {
+                item.quantity += delta;
+                if (item.quantity <= 0) {
+                    cart = cart.filter(i => i.name !== name);
+                }
+            }
+            updateCartUI();
+        }
+
+        function applyCoupon() {
+            const code = document.getElementById('coupon-input').value.trim().toUpperCase();
+            const msg = document.getElementById('coupon-status-msg');
+            if (code === 'VIBE20') {
+                appliedDiscount = 0.20;
+                msg.textContent = "✅ VIBE20 koduyla %20 indirim uygulandı!";
+                msg.className = "text-[10px] block font-semibold text-emerald-400";
+                showToast("🎉 VIBE20 Kuponu Uygulandı! %20 İndirim Kazandınız.", "success");
+            } else if (code === 'BEDAVAKAHVE' && stampCount >= 6) {
+                appliedDiscount = 0.30;
+                msg.textContent = "🎁 BEDAVAKAHVE koduyla %30 hediye indirimi uygulandı!";
+                msg.className = "text-[10px] block font-semibold text-pink-400";
+                showToast("🎁 Hediye Kahve Kuponu Uygulandı!", "success");
+            } else {
+                appliedDiscount = 0;
+                msg.textContent = "❌ Geçersiz kupon kodu.";
+                msg.className = "text-[10px] block font-semibold text-rose-400";
+            }
+            updateCartUI();
+        }
+
+        function updateCartUI() {
+            const container = document.getElementById('cart-items-container');
+            const badge = document.getElementById('cart-badge');
+            const totalPrice = document.getElementById('cart-total-price');
+            const oldPriceSpan = document.getElementById('discounted-old-price');
+
+            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            const totalCost = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+            badge.textContent = totalItems;
+
+            if (appliedDiscount > 0 && totalCost > 0) {
+                const finalCost = Math.round(totalCost * (1 - appliedDiscount));
+                oldPriceSpan.textContent = totalCost + " TL";
+                oldPriceSpan.classList.remove('hidden');
+                totalPrice.textContent = finalCost + " TL";
+            } else {
+                oldPriceSpan.classList.add('hidden');
+                totalPrice.textContent = totalCost + " TL";
+            }
+
+            if (cart.length === 0) {
+                container.innerHTML = `
+                    <div id="empty-cart-msg" class="text-center py-12 text-slate-500 space-y-3">
+                        <i class="fa-solid fa-mug-hot text-4xl text-slate-700"></i>
+                        <p class="text-sm">Sepetiniz henüz boş. Menüden lezzet ekleyebilirsiniz!</p>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = cart.map(item => `
+                    <div class="flex items-center justify-between p-3 rounded-2xl bg-slate-800/60 border border-slate-700/50">
+                        <div class="flex items-center gap-3">
+                            <img src="${item.image}" class="w-12 h-12 rounded-xl object-cover">
+                            <div>
+                                <h4 class="text-sm font-semibold text-white">${item.name}</h4>
+                                <span class="text-xs text-pink-400 font-bold">${item.price * item.quantity} TL</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 bg-slate-900 px-2 py-1 rounded-xl border border-slate-700">
+                            <button onclick="changeQuantity('${item.name}', -1)" class="w-6 h-6 rounded-lg bg-slate-800 text-slate-300 hover:text-white font-bold text-xs flex items-center justify-center">-</button>
+                            <span class="text-xs font-bold text-white px-1">${item.quantity}</span>
+                            <button onclick="changeQuantity('${item.name}', 1)" class="w-6 h-6 rounded-lg bg-slate-800 text-slate-300 hover:text-white font-bold text-xs flex items-center justify-center">+</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function sendWhatsAppOrder() {
+            if (cart.length === 0) {
+                alert("Sepetiniz boş!");
+                return;
+            }
+            let text = "Merhaba Vibe & Brew! Sipariş Vermek İstiyorum:\n\n";
+            cart.forEach(item => {
+                text += `• ${item.quantity}x ${item.name} (${item.price * item.quantity} TL)\n`;
+            });
+            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const finalCost = appliedDiscount > 0 ? Math.round(total * (1 - appliedDiscount)) : total;
+            
+            text += `\nToplam Tutar: ${finalCost} TL ${appliedDiscount > 0 ? '(İndirimli)' : ''}\nAdres/Masa Detayı: `;
+            
+            const url = `https://wa.me/902165554242?text=${encodeURIComponent(text)}`;
+            window.open(url, '_blank');
+        }
+    </script>
+
+</body>
+</html>

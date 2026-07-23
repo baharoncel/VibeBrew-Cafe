@@ -1,0 +1,19 @@
+# Python & Django ignore rules
+*.pyc
+*~
+__pycache__/
+*.sqlite3
+*.log
+local_settings.py
+.env
+
+# Visual Studio & IDE files
+.vs/
+*.pyproj.user
+obj/
+bin/
+.idea/
+.vscode/
+
+# Media and Static exports
+/static/
