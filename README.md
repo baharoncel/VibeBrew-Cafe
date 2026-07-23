@@ -4,7 +4,11 @@
 
 **VibeBrew-Cafe**, modern web mimarisi, zengin renk paleti ve yüksek performanslı Tailwind CSS arayüzü ile geliştirilmiş, tam kapsamlı bir **Django Kafe & Dijital Menü Web Uygulamasıdır**. 
 
-Ziyaretçilere eşsiz bir dijital menü deneyimi, canlı sipariş sepeti, WhatsApp entegrasyonu, sürpriz kahve seçici ve interaktif açık/kapalı durumu gibi modern özellikler sunar.
+---
+
+## 🎓 Geliştirici Notu (Backend Student Project)
+
+Bu proje, bir **Backend Developer Öğrencisi** olarak endüstri standartlarında Django MVT mimarisi, veritabanı modellemesi (ORM), sunucu taraflı form güvenliği (ModelForm), RESTful JSON API tasarımı ve yayına alma (Deployment) pratiklerini sergilemek amacıyla geliştirilmiştir.
 
 ---
 
@@ -23,7 +27,7 @@ Bu proje, modern geliştirme standartları doğrultusunda **Google DeepMind Anti
 - **🎲 Sürpriz Kahve Seçici ("Bana Kahve Öner!")**: Kararsız misafirler için eğlenceli algoritmik kahve önerici.
 - **🔔 Canlı Neon Toast Bildirimleri**: Anlık eylemlerde kayarak açılan şık mikro bildirimler.
 - **🟢 Canlı Çalışma Saatleri Rozeti**: Şu anki saate göre otomatik değişen "Şu An Açığız" / "Şu An Kapalıyız" rozeti.
-- **🌙 Aydınlık / Karanlık Tema (Dark & Light Mode)**: Tek tıkla gece ve gündüz modları arasında geçiş.
+- **🌙 Aydınlık / Karanlık Tema (Dark & Light Mode)**: Tek tıkla gece me gündüz modları arasında geçiş.
 - **📱 Masaya Özel QR Menü**: Masalarda okutulabilir dijital menü simülasyonu.
 - **🎵 Spotify Playlist Barı**: Kafenin konsept müziğini sunan canlı equalizer efektli müzik barı.
 - **💬 Sıkça Sorulan Sorular (SSS)**: İnteraktif akordiyon yanıt alanı.
@@ -48,7 +52,7 @@ Projeyi bilgisayarınızda klonlayıp çalıştırmak için aşağıdaki adımla
 
 ```bash
 # 1. Depoyu klonlayın
-git clone https://github.com/KULLANICI_ADINIZ/VibeBrew-Cafe.git
+git clone https://github.com/baharoncel/VibeBrew-Cafe.git
 
 # 2. Proje dizinine gidin
 cd VibeBrew-Cafe
