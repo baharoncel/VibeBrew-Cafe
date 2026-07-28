@@ -16,14 +16,18 @@ import posixpath
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
+# Load environment variables from .env file if python-dotenv is installed
+try:
+    from dotenv import load_dotenv
+    load_dotenv(os.path.join(BASE_DIR, '.env'))
+except ImportError:
+    pass
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '4837b87a-cfa7-4055-8f0a-3f567a5360cf'
+SECRET_KEY = os.environ.get('SECRET_KEY', '4837b87a-cfa7-4055-8f0a-3f567a5360cf')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'True').lower() in ('true', '1', 't')
 
 ALLOWED_HOSTS = ['vibebrew-cafe.onrender.com', 'localhost', '127.0.0.1', '*']
 
